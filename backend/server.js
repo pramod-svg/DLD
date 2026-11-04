@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const dotenv = require('dotenv');
 const { connectDB } = require('./config/db');
 const apiRoutes = require('./routes/api');
@@ -19,15 +20,16 @@ connectDB();
 // API Routes
 app.use('/api', apiRoutes);
 
-// Health check route
-app.get('/', (req, res) => {
-  res.json({
-    status: 'OK',
-    message: 'Digital Voting Machine Simulator Backend (DLD) is running.',
-    version: '1.0.0'
-  });
+// Serve frontend in production
+const frontendBuildPath = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendBuildPath));
+
+// All non-API routes serve the React app (SPA fallback)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendBuildPath, 'index.html'));
 });
 
 app.listen(PORT, () => {
-  console.log(`[Server] DLD Voting Machine Server running on port ${PORT}`);
+  console.log(`[Server] DLD Voting Machine running on port ${PORT}`);
+  console.log(`[Server] Frontend served from: ${frontendBuildPath}`);
 });
