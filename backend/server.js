@@ -24,12 +24,15 @@ app.use('/api', apiRoutes);
 const frontendBuildPath = path.join(__dirname, '..', 'frontend', 'dist');
 app.use(express.static(frontendBuildPath));
 
-// All non-API routes serve the React app (SPA fallback)
-app.get('*', (req, res) => {
-  res.sendFile(path.join(frontendBuildPath, 'index.html'));
+// All non-API routes serve the React app (SPA fallback in Express 5 uses catch-all middleware or /{*splat})
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    return res.sendFile(path.join(frontendBuildPath, 'index.html'));
+  }
+  next();
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`[Server] DLD Voting Machine running on port ${PORT}`);
   console.log(`[Server] Frontend served from: ${frontendBuildPath}`);
 });
